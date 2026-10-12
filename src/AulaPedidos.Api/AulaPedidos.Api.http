@@ -1,0 +1,12 @@
+@AulaPedidos.Api_HostAddress = http://localhost:5002
+
+GET {{AulaPedidos.Api_HostAddress}}/health
+Accept: text/plain
+
+###
+
+# Disponible únicamente en Development.
+GET {{AulaPedidos.Api_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AulaPedidos.Api/AulaPedidos.Api.csproj" Id="04d1a43b-9d21-4ded-8584-0af6c2fa87b8" />
+    <Project Path="src/AulaPedidos.Application/AulaPedidos.Application.csproj" Id="ba45a793-7b6a-4b98-bc74-269ec27aa92a" />
+    <Project Path="src/AulaPedidos.Domain/AulaPedidos.Domain.csproj" Id="155b4db6-20ba-4b05-b75c-e39043a3ec72" />
+    <Project Path="src/AulaPedidos.Infrastructure/AulaPedidos.Infrastructure.csproj" Id="62182d67-24a1-465e-b423-9086456f944d" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AulaPedidos.Api.IntegrationTests/AulaPedidos.Api.IntegrationTests.csproj" />
+    <Project Path="tests/AulaPedidos.ArchitectureTests/AulaPedidos.ArchitectureTests.csproj" />
+  </Folder>
+</Solution>

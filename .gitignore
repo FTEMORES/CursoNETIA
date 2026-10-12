@@ -1,0 +1,52 @@
+# Compilación de .NET (todos los proyectos y configuraciones)
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Aa]rtifacts/
+x64/
+x86/
+
+# Archivos locales de Visual Studio y otros IDE
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+.idea/
+
+# Pruebas y cobertura
+[Tt]est[Rr]esults/
+coverage/
+coverage.xml
+coverage.json
+*.coverage
+*.coveragexml
+*.trx
+
+# Paquetes descargados y resultados de empaquetado
+packages/
+*.nupkg
+*.snupkg
+
+# Logs y temporales
+*.log
+*.tmp
+*.bak
+*.pdb
+
+# Configuración y datos locales
+.env
+.env.*
+!.env.example
+!.env.template
+.local/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini
