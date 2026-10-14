@@ -1,6 +1,6 @@
 ---
 name: revisar-nombres
-description: "Revisa nombres de clases, interfaces, métodos, propiedades, parámetros y variables en código C# para detectar ambigüedades, abreviaturas y nombres poco descriptivos. Úsala cuando se solicite evaluar o mejorar la claridad de los nombres sin modificar archivos."
+description: "Revisa nombres de clases, interfaces, métodos, propiedades, parámetros y variables en código C# para detectar ambigüedades, abreviaturas y nombres poco descriptivos. Úsala cuando se solicite evaluar o mejorar la claridad de los nombres sin modificar el código."
 ---
 
 # Revisión de nombres en código C#
@@ -20,7 +20,7 @@ Analiza el archivo o fragmento de código C# indicado por el usuario y evalúa s
 - Ten en cuenta el contexto del dominio antes de considerar incorrecta una abreviatura conocida.
 - Respeta las convenciones de nombres que ya sean consistentes en el proyecto.
 - No propongas cambios meramente estéticos si el nombre actual ya es claro.
-- No modifiques ningún archivo; limita la respuesta a observaciones y sugerencias.
+- No modifiques el código revisado; limita las conclusiones a observaciones y sugerencias. Guarda el informe del rol según `.github/copilot-instructions.md` y `docs/informes/README.md`; si no se eligió rol, usa Revisor y su archivo fijo. Puedes inscribir la tarea en el índice cuando corresponda. Una petición explícita de sólo chat o no guardar prevalece.
 
 ## Criterios de revisión
 

@@ -1,7 +1,17 @@
 # Multiagente
 
-Sigue .github/copilot-instructions.md. Trabaja directamente con la petición y los archivos disponibles; no requiere documentos previos de proceso.
+Sigue .github/copilot-instructions.md, docs/informes/README.md y el contrato de publicación de docs/github-pr.md. Trabaja directamente con la petición y los archivos disponibles; no requiere documentos previos de proceso.
 
 Con el Coordinador, divide la tarea en pasos breves y sugiere el rol adecuado. Para una tarea definida se puede usar directamente Implementador. Arquitecto, Pruebas y Revisor son apoyos según necesidad. Entrega prompts para que el alumno cambie de rol manualmente; no simules agentes.
 
-Si se usan los pasos 2A y 2B, incluye en los prompts guardar respectivamente docs/informes/<tarea>/2A-arquitectura.md y docs/informes/<tarea>/2B-pruebas.md. En el paso 3 el Coordinador lee esos archivos y guarda 3-sintesis.md en la misma carpeta. Para la base actual usa BASE-001.
+Resuelve el ID por la petición, conversación, adjunto o alias inequívoco de docs/informes/indice.md. Para un objetivo nuevo, asigna el siguiente consecutivo según el máximo del índice y las carpetas siguiendo README.md, y registra la tarea. TAREA-001, TAREA-002 y TAREA-003 están reservadas para los históricos BASE-001, BASE-002 y Producto-003; consulta el índice actual para calcular el siguiente número. No uses BASE-001, tarea-actual ni la última carpeta por defecto. Para el mismo objetivo conserva ID y carpeta.
+
+Guarda el plan, expediente y prompts del Coordinador en 01-coordinacion.md dentro de la carpeta resuelta docs/informes/TAREA-NNN/. Cada prompt entregado al alumno debe incluir el ID real, la carpeta exacta y el archivo fijo del rol, sin marcadores pendientes de sustituir. Toda entrega sustantiva se guarda también cuando el rol trabaja directamente, sin activar fases adicionales.
+
+Antes de entregar consultas a Arquitecto y Pruebas, el Coordinador crea o reutiliza mediante GitHub MCP el issue del mismo objetivo siguiendo docs/github-pr.md. Registra y traspasa el repositorio verificado, el número y la URL reales del issue, además del ID y las rutas exactas de la tarea. No asumas acceso entre chats. Si no puede confirmarse el issue o no está disponible MCP, declara la vinculación pendiente y continúa con los análisis y entregables locales, sin inventar identificadores ni URLs.
+
+Si se usan los pasos 2A y 2B, los destinos son 02-arquitectura.md y 03-pruebas.md de esa misma carpeta. El Coordinador lee los disponibles y guarda la síntesis en 04-sintesis.md; una ausencia no bloquea y debe quedar indicada. Los otros destinos fijos son 00-ideas.md, 05-implementacion.md, 06-revision.md y 07-cierre.md según el rol y tipo de entrega. Sólo crea 01-paquete-comun.md si el usuario solicita ese paquete. No generes archivos de etapas que no se necesiten ni alteres informes ajenos.
+
+Incluye en los prompts que Arquitecto y Pruebas terminan y guardan su análisis independiente antes de consultar los comentarios del issue para deduplicar su publicación; no reciben el informe contrario para formar 2A/2B. Después publican por MCP el resumen de su resultado y registran el estado real y la URL del comentario en su informe. Pruebas separa diseño inicial y evaluación posterior. El Coordinador publica un resumen propio de la síntesis con acuerdos, diferencias, alcance, aceptación y pendientes, sin inventar decisiones humanas. Todos siguen docs/github-pr.md para reintentar sin duplicar ni editar comentarios ajenos. Si falta issue inequívoco, MCP o permisos, guardan el resumen preparado y su publicación pendiente, sin bloquear el trabajo local. Una petición explícita de sólo chat, sólo local o no publicar prevalece.
+
+Para el mismo objetivo actualiza los archivos correspondientes; comunica las rutas exactas realmente guardadas. Respeta una petición explícita de sólo chat o sin archivos; si no puedes guardar, entrega el contenido y declara que no fue guardado.

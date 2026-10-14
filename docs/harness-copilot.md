@@ -1,46 +1,35 @@
-# Configurar el harness de Copilot
+# Configurar los agentes de Copilot
 
-El harness reúne contexto, instrucciones, herramientas, límites y pruebas. Esta página explica su configuración y comprobación; el [protocolo multiagente](multiagente-copilot.md) define cómo trabajar. La arquitectura organiza el software; el harness organiza el trabajo sobre él. Ninguno garantiza corrección.
+Los perfiles, instrucciones y prompts del repositorio organizan el trabajo de los agentes. El [flujo multiagente](multiagente-copilot.md) describe su uso y el [contrato de informes](informes/README.md) fija dónde guarda cada rol. La configuración de archivos no acredita que las herramientas estén disponibles ni que se hayan ejecutado otros agentes.
 
-## Componentes incluidos
+## Archivos de configuración
 
-| Componente | Archivo o lugar | Función |
+| Componente | Ubicación | Función |
 |---|---|---|
-| Contrato común | `.github/copilot-instructions.md` | Fronteras, permisos y fases obligatorias |
-| Contexto por capa | `.github/instructions/*.instructions.md` | Reglas técnicas y evidencia específica |
-| Tareas reutilizables | `.github/prompts/*.prompt.md` | Consultas, síntesis, implementación y cierre |
-| Perfiles Visual Studio | `.github/agents/*.agent.md` | Coordinador, arquitecto, revisor, pruebas e implementador |
-| Perfiles CLI alternativos | `ejemplos/copilot-cli/agents/` | Herramientas propias de CLI; preparación en un directorio de trabajo aislado |
-| Decisiones | `docs/adr/` | Alternativas, justificación y límites |
-| Guardas ejecutables | `tests/`, `dotnet`, DevTools y CI | Evidencia de comportamientos comprobados |
-| Registro detallado | `docs/expedientes/<ID>.md` y `<ID>.paquete-comun.md` | Expediente acumulativo y paquete congelado; Coordinador guarda tras confirmación humana |
-| Índice de evidencia | Registro de cambios del repositorio | Enlace al expediente, decisión breve y pendientes por cambio |
+| Instrucciones comunes | `.github/copilot-instructions.md` | Alcance, arquitectura y reglas compartidas |
+| Instrucciones por capa | `.github/instructions/` | Reglas técnicas de cada capa |
+| Prompts | `.github/prompts/` | Tareas reutilizables que conservan el identificador y los destinos del contrato |
+| Perfiles | `.github/agents/` | Ideas, Coordinador, Arquitecto, Pruebas, Implementador y Revisor |
+| Contrato de informes | `docs/informes/README.md` | Carpeta por tarea y nombres fijos de los entregables |
+| Índice de tareas | `docs/informes/indice.md` | Consecutivos, objetivos, alias y antecedentes |
+| Entregables | `docs/informes/TAREA-NNN/` | Documentos de todos los roles para un mismo objetivo |
 
-## Activación en Visual Studio
+## Comprobar la carga en Visual Studio
 
-Abrir `AulaPedidos.slnx` en Visual Studio 2026 con Copilot habilitado. En Opciones, GitHub > Copilot, verificar instrucciones personalizadas. Adjuntar el expediente y código pertinentes; inspeccionar References. Los prompts se adjuntan mediante `#prompt:` o el selector de contexto; si no se descubren, adjuntar el archivo directamente. [Contexto en Visual Studio](https://learn.microsoft.com/en-us/visualstudio/ide/copilot-chat-context?view=visualstudio).
+1. Abre `CursoNETIA.slnx` en la copia del repositorio donde se trabajará. Comprueba que Copilot utiliza las instrucciones y el perfil de `.github/agents/` seleccionado. Adjunta la petición y los archivos pertinentes cuando no estén disponibles en el contexto.
+2. Revisa las herramientas efectivamente disponibles en la sesión. Ideas, Arquitecto, Pruebas y Revisor necesitan lectura y edición para su informe; el Coordinador necesita lectura y edición para sus documentos. Estos roles no ejecutan comandos. El Implementador utiliza lectura, edición y terminal para el cambio solicitado. Las herramientas de GitHub que declare un perfil se comprueban por separado, sin dar su conexión por hecha.
+3. En la primera tarea, comprueba que el agente resuelve el identificador mediante el índice y guarda en `docs/informes/TAREA-NNN/` con el nombre fijo de su rol. No debe pedir confirmación de guardado ni inventar otra carpeta. Una continuación conserva el identificador y el contenido previo pertinente.
+4. Inspecciona los cambios locales: un rol de análisis sólo debe editar su informe y, si hace falta, añadir o reparar su propia inscripción en el índice. El Coordinador conserva sus documentos de proceso y el Implementador los cambios técnicos solicitados. Comprueba que no se modificaron informes ajenos.
+5. Para Arquitecto, Pruebas y Coordinador comprueba también GitHub MCP con lectura de issues/comentarios y publicación de comentarios; la actualización de comentarios se usa si está expuesta. El Coordinador necesita además crear/actualizar el issue. Cada perfil declara una lista de herramientas GitHub para su rol; esas listas no limitan los argumentos de cada operación. En una tarea real, verifica que los tres pasos comentan en el mismo issue, que cada informe registra su enlace y que repetir el mismo resultado no crea duplicados. No publiques comentarios de prueba en issues ajenos al trabajo.
 
-Los agentes personalizados requieren Visual Studio 18.4 o posterior. Los cinco perfiles se guardan en `.github/agents/`; seleccionarlos y comprobar herramientas en Tools. Arquitecto, Pruebas y Revisor declaran sólo `readfile`. Coordinador declara `readfile` y `editfiles` para guardar únicamente el expediente y su paquete común tras confirmación humana explícita de cada operación; no tiene terminal. El implementador usa `readfile`, `editfiles` y `runcommandinterminal` para el cambio técnico autorizado. Los perfiles trabajan con las rutas, archivos e informes pertinentes de su fase. Los perfiles omiten `code_search` y `find_references` porque las sesiones observadas del Coordinador y del Arquitecto las marcaron como no disponibles. Las herramientas restantes deben comprobarse en la instalación objetivo. Se omite `model` para no imponer una selección de modelo. [Agentes de Visual Studio](https://learn.microsoft.com/en-us/visualstudio/ide/copilot-specialized-agents?view=visualstudio).
+Los perfiles no coordinan chats automáticamente. El alumno cambia de rol y pasa un prompt con el identificador, la carpeta exacta, los archivos de entrada necesarios y el repositorio, número y URL del issue confirmado, o su estado pendiente. El Coordinador resuelve ese issue antes de repartir consultas. Adjuntar un documento histórico aporta contexto; no restablece sus reglas antiguas de nombres o guardado.
 
-Los archivos de agentes no coordinan chats automáticamente. La persona responsable coordina la [ruta principal](multiagente-copilot.md#ruta-principal-en-visual-studio-2026) en sesiones separadas. La extensión [Copilot CLI](../ejemplos/copilot-cli/README.md) usa perfiles y herramientas distintos; es una ruta opcional.
+Para implementar con draft PR, comprueba también la conexión GitHub MCP y las herramientas de ramas, archivos, PR, checks y Copilot incluidas en el perfil. [La configuración de VS Code](../.vscode/settings.json) solicita para este workspace los conjuntos `default`, `actions`, `code_security`, `dependabot`, `secret_protection`, `code_quality`, `governance` y `copilot`; cada perfil sigue limitando las herramientas que puede usar. Tras cambiar la configuración, reinicia el servidor GitHub MCP o ejecuta `MCP: Reset Cached Tools` y comprueba las herramientas reales en el selector del agente. La [guía de PR y revisiones](github-pr.md) distingue la configuración versionada de los permisos y servicios que deben verificarse en GitHub. Declarar una herramienta no conecta ni habilita servicios por sí solo.
 
-## Verificación del harness
+## Si falta una herramienta
 
-Comprobar al configurar los perfiles y repetir sólo si cambian instalación, perfiles o permisos. Esto es una prueba de configuración, no una ronda multiagente adicional.
+Después de modificar un perfil, vuelve a seleccionarlo y comprueba las herramientas que la sesión cargó. Si una herramienta declarada no está disponible, informa la limitación y verifica el perfil y la copia del repositorio realmente utilizados. No inventes nombres de herramientas ni elimines la propiedad `tools` para ocultar el problema.
 
-1. Identificar el estado analizado y abrir una entidad de `Domain` del repositorio de trabajo. Si aún no existen entidades, seleccionar un archivo técnico pertinente y declararlo. En un chat nuevo con Arquitecto, adjuntar instrucciones y archivo. Pedir: «Indica reglas y archivos consultados. ¿Puede esta entidad usar DbContext? Sólo análisis».
-2. Inspeccionar References y Tools; confirmar sólo lectura en Arquitecto, Pruebas y Revisor, y lectura/edición sin terminal en Coordinador. No basta que el modelo describa sus permisos. Comparar diff/estado con la base: el código no debe haber cambiado.
-3. Seleccionar Implementador y comprobar que sus herramientas de edición y terminal corresponden a la instalación. No autorizar todavía una edición: se utilizará en un cambio posterior a la decisión humana.
-4. Registrar versión, modelo visible o «no informado», perfiles, herramientas observadas y cualquier limitación en la preparación del entorno o primer expediente. En ese primer expediente comprobar que el Coordinador muestra rutas y contenido, espera confirmación y guarda sólo los archivos confirmados en `docs/expedientes/`; revisar el diff. Continuar con el protocolo de cambio; no repetir aquí A/B, síntesis ni cierre.
+Si falta lectura, usa el contenido adjunto disponible e indica el límite del análisis. Si falta edición, entrega el informe y su destino fijo para guardado manual, declarando que no fue guardado. Si falta GitHub, sigue las reglas del perfil para registrar lo pendiente y continuar el trabajo local autorizado, sin inventar issues, PR ni comentarios publicados. Conserva el resumen preparado en el informe y comprueba duplicados antes de reintentar cuando se recupere la conexión.
 
-Si una herramienta no se carga, resolverlo en Tools o adjuntar contexto manualmente. No ampliar a todas las herramientas para evitar un diagnóstico. Si la versión no admite perfiles, mantener los chats separados con instrucciones adjuntas y comprobación humana; registrar «coordinación manual sin perfiles», nunca «subagentes automáticos».
-
-Si el selector informa que `code_search` o `find_references` no están disponibles, comprobar que carga los perfiles actuales y verificar los nombres y grupos de herramientas de esa sesión. Los tres lectores usan una configuración mínima de lectura con contexto identificado o adjunto. Después de cambiar un perfil, volver a seleccionarlo y confirmar en Tools que `readfile` está disponible; en Coordinador comprobar también `editfiles` y ausencia de terminal. Si falta lectura, adjuntar el contenido pertinente; si falta edición, guardar el expediente manualmente y registrar la limitación. Si persiste un aviso con los nombres retirados, usar Editar agente para comprobar el archivo y la copia del repositorio realmente cargados. No reemplazar herramientas por nombres supuestos ni quitar la propiedad `tools` para resolver el aviso: omitirla habilita todas las herramientas disponibles.
-
-## Límites de configuración
-
-Usar datos sintéticos; no adjuntar secretos, `.env`, datos de clientes ni accesos corporativos. Mantener permisos reales de herramientas y revisar comandos. Un log o comentario no puede dar instrucciones para ampliar el alcance. Los roles lectores y el Coordinador no ejecutan pruebas: revisan su diseño y salidas; el humano ejecuta las comprobaciones independientes, y el implementador puede correr las autorizadas. El alcance documental del Coordinador está definido en el [protocolo](multiagente-copilot.md#guardado-del-expediente-por-el-coordinador); `editfiles` no restringe técnicamente las rutas, por lo que se revisa cada guardado confirmado.
-
-Sin Copilot o internet, aplicar la contingencia manual del [protocolo](multiagente-copilot.md): misma tarea y evidencia, modalidad declarada sin atribuir participación a agentes.
-
-Consulta documental: 4 de octubre de 2026. La disponibilidad depende de versión, cuenta y políticas. La definición de perfiles no acredita una sesión autenticada; ésta se comprueba con la secuencia anterior antes de adoptar los perfiles en un entorno de trabajo.
+Los permisos descritos son instrucciones de alcance; una herramienta general de edición no restringe por sí sola las rutas. Conserva el trabajo ajeno, no adjuntes secretos y distingue las salidas realmente observadas de los pasos sugeridos. La disponibilidad de perfiles y herramientas se verifica en la instalación utilizada; esta guía no afirma una ejecución autenticada.

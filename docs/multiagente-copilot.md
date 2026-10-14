@@ -1,113 +1,50 @@
-# Flujo multiagente supervisado con Copilot
+# Flujo multiagente de AulaPedidos
 
-Este proyecto adopta consulta separada y síntesis inspiradas en [Lokomotiv](https://docs.rs/crate/lokomotiv/latest), una herramienta externa de orquestación de varios modelos. Lokomotiv no se instala ni se presenta como patrón oficial o integración nativa de GitHub Copilot. El flujo agrega decisión humana, un solo escritor de implementación y evidencia de comportamiento. El Coordinador puede conservar el expediente tras confirmación humana de cada guardado.
+Cada tarea guarda los entregables de sus agentes en una sola carpeta: `docs/informes/TAREA-NNN/`. El [contrato de informes](informes/README.md) define los nombres, la asignación del consecutivo y las reglas de actualización. El [índice de tareas](informes/indice.md) relaciona cada identificador con su objetivo y sus antecedentes. Estas reglas sustituyen las rutas y condiciones de guardado de versiones anteriores del flujo.
 
-Dos respuestas no son dos verificaciones. Cambiar la etiqueta de un rol tampoco crea otro agente. La calidad se demuestra con reglas, código, pruebas y observaciones; el ingeniero conserva la responsabilidad.
+## Comenzar o continuar una tarea
 
-## Cómo funciona el flujo
+Trabaja directamente con la petición y los archivos disponibles. No se exige expediente, commit, diff, consultas previas, síntesis ni otra aprobación de rutina. Una petición definida de implementación puede ir directamente al Implementador.
 
-El diagrama siguiente resume el recorrido, incluida la aclaración, el rechazo y el cierre. Los análisis nacen en sesiones separadas sin leer el informe contrario: eso no exige simultaneidad ni garantiza errores independientes. La aprobación final siempre corresponde al humano; no se activa automáticamente al terminar las pruebas.
+Antes de guardar, resuelve la tarea por el identificador, la ruta, el contexto actual o un alias inequívoco del índice. No elijas la última tarea por defecto. Para un objetivo nuevo, registra el siguiente consecutivo conforme al contrato, considerando los identificadores ya registrados y las carpetas existentes; no pidas al alumno que invente el nombre. El primer rol que atienda directamente una tarea nueva puede hacer ese registro mínimo.
 
-```mermaid
-flowchart TD
-    E["Expediente común<br/>Objetivo, reglas, aceptación y estado exacto"]
-    A["Análisis A<br/>Lector asignado, sin informe B"]
-    B["Análisis B<br/>Lector asignado, sin informe A"]
-    S["Síntesis del coordinador<br/>Conservar acuerdos, desacuerdos y evidencia pendiente"]
-    D{"Decisión del ingeniero"}
-    Q["Aclaración focalizada<br/>Máximo una, dentro del presupuesto"]
-    R["Registrar rechazo o pendiente<br/>Sin dar por aceptado el cambio"]
-    P["Pruebas valida casos y esperados<br/>desde requisitos"]
-    I["Un único implementador escribe<br/>sólo el alcance autorizado"]
-    V["Verificación del estado resultante<br/>Humano ejecuta; Pruebas y Revisor evalúan evidencia"]
-    C{"Cierre humano<br/>¿La evidencia satisface los criterios?"}
-    F["Aceptar y registrar el cierre<br/>Evidencia en expediente; enlace en registro de cambios"]
-    E --> A
-    E --> B
-    A --> S
-    B --> S
-    S --> D
-    D -->|Aclarar| Q
-    Q -->|Añadir evidencia| S
-    D -->|Rechazar o dejar pendiente| R
-    D -->|Aprobar alcance| P
-    P --> I
-    I --> V
-    V --> C
-    C -->|Aceptar| F
-    C -->|Pedir cambios| D
-    C -->|Rechazar o dejar pendiente| R
-```
+Conserva la misma carpeta mientras continúe el objetivo. Los alias históricos como `BASE-001`, `BASE-002` o `Producto-003` se resuelven mediante el índice. Sus documentos anteriores permanecen donde están como antecedentes; los nuevos entregables se guardan en la carpeta `TAREA-NNN` registrada.
 
-El retorno para pedir cambios no autoriza nuevas rondas ilimitadas. El ingeniero acota la corrección; si cambia una premisa o el estado base, actualiza el expediente y repite los análisis afectados. Revisor y Pruebas son lectores; el implementador puede ejecutar comprobaciones autorizadas en Visual Studio, y el humano conserva la verificación independiente y la decisión de cierre.
+## Entregables por rol
 
-## Protocolo de cambio
+Los nombres siguientes son fijos dentro de `docs/informes/TAREA-NNN/`. Sus prefijos ordenan los entregables; no representan rondas obligatorias.
 
-Aplicar el ciclo a cada cambio significativo. Los cambios menores pueden reutilizar expediente y decisión mientras conserven el alcance autorizado; no abrir otra ronda completa por cada línea. Actualizar la evidencia afectada cuando cambie el estado.
-
-| Fase | Responsable | Entrada y salida comprobables |
+| Rol | Archivo | Contenido |
 |---|---|---|
-| E. Expediente | Ingeniero con coordinador | Objetivo, reglas, aceptación, riesgos, archivos permitidos, estado exacto y presupuesto; Coordinador guarda tras confirmación humana |
-| A/B. Consulta separada | Dos lectores asignados para la ronda | Mismo paquete común congelado; informes originales sin recibir la respuesta del otro |
-| S. Síntesis | Coordinador | Comparación de A/B, acuerdos, desacuerdos, evidencia faltante y recomendación; guardado del expediente confirmado |
-| D. Decisión | Ingeniero | Opción y justificación, alcance autorizado y pendientes; casos de Pruebas basados en requisitos |
-| I. Implementación | Un implementador designado | Cambio acotado de código, tests y documentación, con diff rastreable |
-| V. Verificación | Pruebas, revisor y humano | Matriz de casos, salidas reales, revisión del diff y contraejemplos |
-| C. Cierre | Ingeniero | Aceptar, pedir cambios o rechazar; Coordinador registra la decisión real y conserva la actualización confirmada |
+| Ideas | `00-ideas.md` | Requisitos, supuestos, dudas y propuesta preparada para el siguiente rol |
+| Coordinador | `01-coordinacion.md` | Objetivo, alcance, requisitos, plan y prompts; también sirve como expediente cuando se solicite |
+| Arquitecto | `02-arquitectura.md` | Estructura, dependencias, alternativas útiles y cambios propuestos |
+| Pruebas | `03-pruebas.md` | Casos, resultados esperados, evidencia disponible y comprobaciones pendientes |
+| Coordinador | `04-sintesis.md` | Fuentes, acuerdos, diferencias y alcance recomendado |
+| Implementador | `05-implementacion.md` | Cambios realizados, comprobaciones reales y pendientes |
+| Revisor | `06-revision.md` | Hallazgos con ubicación, impacto, recomendación y límites |
+| Coordinador | `07-cierre.md` | Evidencia disponible, pendientes y decisión humana cuando exista |
 
-Pruebas y Revisor son lectores distintos del implementador. A/B identifican informes, no perfiles fijos: la ronda puede asignar Arquitecto/Pruebas, Arquitecto/Revisor o Revisor/Pruebas según el riesgo. El expediente registra la asignación. Pruebas diseña casos antes del cambio y evalúa sus resultados después; Revisor inspecciona el diff final en una sesión nueva aunque haya participado inicialmente. Los comandos independientes los ejecuta la persona responsable. Si se necesita corregir, sólo el implementador escribe y se vuelve a verificar el diff actualizado.
+Si el usuario solicita un paquete común, el Coordinador guarda `01-paquete-comun.md` en esa misma carpeta. No lo exige para continuar ni crea otras variantes de nombre para planes, expedientes o síntesis.
 
-El expediente incluye identificación del repositorio o directorio de trabajo, commit y cambios locales (diff y archivos nuevos), versiones relevantes, archivos de contexto, regla y origen del resultado esperado, criterios positivo, negativo y de borde, exclusiones, permisos y condición de parada. Sin Git, conservar una copia identificada de los archivos base y registrar esa limitación. No cambiar código durante A/B. Si cambia el estado, actualizar expediente y repetir los análisis afectados.
+Una nueva entrega del mismo rol y objetivo actualiza su archivo fijo conservando decisiones humanas, evidencia y notas ajenas. Pruebas distingue el análisis inicial de la evaluación posterior. No crea carpetas con sufijos libres ni renombra archivos según el título del tema. No modifica el informe de otro rol ni inventa su participación.
 
-Guardar los informes sólo después de que ambos terminen, o mantenerlos fuera del contexto accesible de la otra consulta. El Coordinador incorpora los originales al expediente sólo tras ambas consultas y confirmación humana de guardado. A/B reciben únicamente el paquete común congelado; no adjuntar al pedir B un expediente que ya contenga A ni enlaces a ese informe. En síntesis, una tabla punto/A/B/evidencia/decisión pendiente evita perder la propuesta minoritaria. Si un agente no corrió, no tuvo contexto o agotó tiempo, escribir «pendiente» y reducir alcance; nunca reemplazarlo con una respuesta inventada.
+## Pasar trabajo entre chats
 
-Presupuesto de la ronda: una consulta inicial A/B y como máximo una aclaración. Análisis y síntesis tienen 10 minutos de referencia, ajustables por la persona responsable antes de iniciar según el riesgo y el alcance. Si no se resuelve a tiempo, registrar la decisión pendiente y reducir alcance o acordar otra ronda; no entrar en debate ilimitado ni inventar consenso.
+El Coordinador crea o reutiliza el issue de la tarea antes de repartir consultas, según la [guía de GitHub](github-pr.md). Entrega prompts que incluyan el identificador y la carpeta exacta, los archivos de entrada pertinentes, el destino fijo del rol y el repositorio, número y URL verificados del issue, o su estado pendiente. Los perfiles no activan por sí solos otros chats: en Visual Studio el alumno selecciona manualmente el rol. La [guía de configuración](harness-copilot.md) explica cómo comprobar los perfiles y sus herramientas.
 
-Sin Copilot, acceso o cuota, realizar dos análisis manuales separados sobre el mismo paquete. Conservar las fases, la evidencia técnica y la decisión humana; registrar «contingencia sin IA» y la revisión pendiente. No inventar agentes, respuestas ni ejecución.
+Cuando sean útiles dos análisis separados, Arquitecto y Pruebas estudian la petición y los archivos del proyecto sin usar el informe ni los comentarios del otro rol para formar su propuesta. Cada uno concluye y guarda su propio informe antes de consultar comentarios para deduplicación; después publica su resumen en el issue compartido. Pruebas mantiene separados el diseño inicial y la evaluación posterior. La síntesis del Coordinador lee `02-arquitectura.md` y `03-pruebas.md` de la tarea identificada; no supone acceso a los otros chats. Si falta uno, sintetiza lo disponible y registra la ausencia. Una diferencia de objetivos o evidencia se declara, sin inventar consenso.
 
-### Una sola ubicación para cada evidencia
+El Coordinador guarda `04-sintesis.md` y publica su propio comentario resumen de acuerdos, diferencias, alcance recomendado, aceptación y pendientes en ese mismo issue; actualizar el cuerpo del issue no sustituye el comentario. Los tres pasos conservan en sus informes el id/URL del comentario y estado real. Los reintentos no duplican el resumen ni editan comentarios ajenos. Si falta MCP o un issue inequívoco, guardan el resumen preparado y el pendiente, y continúan el análisis local. Una petición de sólo chat, sólo local o no publicar prevalece.
 
-| Documento | Qué se guarda allí |
-|---|---|
-| Expediente de cambio | `docs/expedientes/<ID>.md`: registro detallado único con enlace al paquete, estado, A/B originales, síntesis, decisión, diff, pruebas, revisión y cierre |
-| Paquete común | `docs/expedientes/<ID>.paquete-comun.md`: requisitos y estado base congelados para A/B, sin informes ni síntesis |
-| Registro de cambios | Índice de evidencia: enlace al expediente, decisión breve y pendientes por cambio |
-| Cierre del cambio | Índice de evidencias y ejecución del proyecto; enlaza, no transcribe el ciclo |
+El Implementador usa la petición humana y los informes pertinentes, incluida `04-sintesis.md` cuando exista. Su ausencia no bloquea una petición directa. Después, Pruebas puede evaluar las salidas reales y Revisor los archivos o cambios disponibles. Dos informes no sustituyen comprobaciones ni garantizan corrección.
 
-Los informes y salidas grandes pueden ser archivos sanitizados enlazados desde el expediente. La persona responsable conserva esta evidencia; el Coordinador puede incorporar sus enlaces con confirmación. «Un escritor» restringe las ediciones de código, pruebas y documentación técnica del cambio; el Coordinador se ocupa de los documentos del proceso autorizados. No editar simultáneamente el mismo archivo ni rellenar el expediente y los índices con la misma transcripción.
+Al implementar código, el Implementador publica o actualiza el draft PR de la tarea mediante GitHub MCP según la [guía de PR y revisiones](github-pr.md), incluso sin issue, salvo petición de trabajo sólo local. Solicita Copilot code review y consulta los checks de seguridad, cobertura y calidad. El informe conserva la URL y la evidencia reales; si la conexión falta, deja la publicación pendiente.
 
-### Guardado del expediente por el Coordinador
+## Guardado y alcance
 
-El Coordinador puede crear o actualizar sólo `docs/expedientes/<ID>.md` y `docs/expedientes/<ID>.paquete-comun.md` dentro del directorio de trabajo identificado. Por ejemplo, `docs/expedientes/CATEGORY-001.md`. La [guía de expedientes](expedientes/README.md) muestra el intercambio de confirmación. Los registros previos en subcarpetas pueden mantenerse manualmente; no se migran ni sobrescriben automáticamente.
+Cada entrega sustantiva del rol se guarda conforme al contrato, sin confirmación adicional de guardado. Las preguntas intermedias y los saludos no crean tareas ni informes. Si el usuario pide expresamente sólo una respuesta en el chat, no guardar u otro destino, se respeta esa instrucción sin cambiar la convención para futuras tareas. Al terminar, comunica las rutas realmente leídas y guardadas. Si falta lectura o edición, declara la limitación y entrega el contenido con su destino previsto, sin afirmar que fue guardado.
 
-Antes de cada guardado muestra las rutas exactas y el contenido propuesto o diff. La persona revisa y confirma explícitamente esa operación; el Coordinador guarda el contenido confirmado y registra quién confirmó y qué se autorizó. No repite una confirmación ya recibida para el mismo contenido y destino. Contenido nuevo requiere otra confirmación. Conserva decisiones previas, informes originales y procedencia; si detecta cambios ajenos en el archivo, presenta una actualización conciliada antes de pedir confirmación. Si no dispone de edición, entrega el texto para guardado manual y registra la limitación.
+La edición local de Ideas, Arquitecto, Pruebas y Revisor se limita a su informe. El Coordinador guarda los documentos de coordinación que le corresponden. Pueden añadir o reparar la inscripción de su propia tarea en el índice, conservando las demás filas. Arquitecto, Pruebas y la síntesis publican además sus propios resúmenes en el issue conforme a la guía. Estos roles no editan código ni tests ni ejecutan comandos. El Implementador realiza el cambio técnico solicitado y las comprobaciones proporcionales, además de su informe.
 
-El paquete común queda congelado antes de A/B. No lo modifica durante las consultas ni añade informes o síntesis; un cambio de premisa o estado exige identificar otra versión y repetir los análisis afectados. Cuando el expediente acumule informes, sólo el paquete común se adjunta a los lectores iniciales.
-
-Confirmar el guardado documental no autoriza implementar ni aceptar el cambio. El Coordinador puede conservar una propuesta de cierre con decisión pendiente; sólo registra aceptación, corrección o rechazo cuando el humano lo haya decidido explícitamente. No modifica código, pruebas, documentación técnica, bitácoras, plantillas ni configuración, no ejecuta comandos y no delega escritura. Esta delimitación de rutas es una instrucción de alcance; la herramienta de edición no ofrece por sí sola ese aislamiento. Comprobar permisos efectivos y revisar el diff.
-
-## Ruta principal en Visual Studio 2026
-
-1. Preparar perfiles con [Harness Copilot](harness-copilot.md). Registrar versión, modelo y herramientas reales. Implementar en el repositorio o directorio de trabajo identificado. Antes de editar otro destino, registrar su estado y el alcance autorizado.
-2. Preparar expediente y paquete común mediante `.github/prompts/multiagente.prompt.md`. El humano fija los resultados de negocio esperados y confirma rutas y contenido; el Coordinador los guarda en `docs/expedientes/` y congela el paquete antes de A/B.
-3. Abrir dos chats nuevos con los perfiles A/B asignados para la ronda, sólo el archivo `<ID>.paquete-comun.md`, los archivos de contexto permitidos y el prompt técnico apropiado. Por ejemplo, Arquitecto analiza opciones y Pruebas deriva casos. El segundo no recibe el informe del primero. Se pueden ejecutar secuencialmente; describirlo como consulta separada manual.
-4. Abrir Coordinador y adjuntar expediente, A/B completos y `sintesis.prompt.md`. Revisar y confirmar el diff para guardar originales, desacuerdos y comprobaciones pendientes. El humano decide el alcance de implementación; Pruebas revisa la matriz de aceptación.
-5. Abrir Implementador con decisión explícita y prompt de feature/refactor o reparación aprobado. Inspeccionar herramientas y cambios. Ningún otro chat modifica código, tests ni documentación técnica de implementación. El Coordinador sólo guarda sus documentos de proceso confirmados; no hay edición simultánea del mismo archivo.
-6. Revisar diff en una nueva sesión de Revisor y evaluar casos/salidas con Pruebas. Con `cierre.prompt.md`, el humano decide el cierre y confirma la actualización documental; el Coordinador guarda evidencia y decisión final en el expediente. La persona añade sólo su enlace y decisión breve al registro de cambios. Documentar también lo rechazado.
-
-Los perfiles en `.github/agents/` son de Visual Studio; crear archivos no activa coordinación automática. Los nombres de herramientas provienen de [Microsoft Learn](https://learn.microsoft.com/en-us/visualstudio/ide/copilot-specialized-agents?view=visualstudio) y se comprueban localmente. No trasladar configuraciones de VS Code a Visual Studio.
-
-## Ruta opcional de delegación real en Copilot CLI
-
-Es una extensión opcional. Utiliza el mismo expediente y fases; sólo cambia la coordinación de A/B. Preparación, perfiles, permisos, comandos y comprobación de tareas reales están en la [guía CLI](../ejemplos/copilot-cli/README.md). No mezclar sus herramientas con las de Visual Studio ni afirmar que hubo subagentes sólo porque existen perfiles.
-
-## Criterios de evidencia
-
-- A/B corresponden al mismo expediente y estado; se conservan originales y referencias consultadas.
-- La síntesis identifica desacuerdos y supuestos comunes; no aprueba por votación.
-- La decisión de implementación pertenece al humano y precede a la edición de código, pruebas y documentación técnica. Sólo hay un implementador escritor; el Coordinador guarda exclusivamente el expediente y paquete común tras confirmación humana de rutas y contenido. No hay ediciones simultáneas del mismo archivo.
-- Al menos un caso negativo procede de una regla comprobable, no del código generado.
-- Pruebas y revisor separan observado, inferido y pendiente. Se identifica quién ejecutó cada comando y sobre qué estado.
-- La modalidad se declara con precisión: manual, subagentes realmente observados o contingencia sin IA. Un requisito pendiente impide declararlo completado.
-
-Estas son decisiones del proyecto, no capacidades garantizadas por el producto. Fuentes consultadas el 4 de octubre de 2026. La verificación documental no sustituye una comprobación autenticada en el entorno objetivo, con sus versiones y políticas.
+No edites simultáneamente un mismo archivo. La herramienta de edición no impone por sí sola el aislamiento de rutas: comprueba el destino, conserva cambios ajenos y revisa el resultado. Distingue siempre propuestas, decisiones humanas, comandos ejecutados y comprobaciones pendientes. Guardar una propuesta no equivale a aprobarla ni a aceptar el cambio.

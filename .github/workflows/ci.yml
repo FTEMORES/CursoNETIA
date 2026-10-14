@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  nuget-audit:
+    name: NuGet audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore and audit all dependencies
+        run: >-
+          dotnet restore CursoNETIA.slnx
+          -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=moderate
+          --warnaserror
+
+  build-test-coverage:
+    name: Build, tests and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore and audit all dependencies
+        run: >-
+          dotnet restore CursoNETIA.slnx
+          -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=moderate
+          --warnaserror
+
+      - name: Build with analyzers and warnings as errors
+        id: build
+        run: >-
+          dotnet build CursoNETIA.slnx --configuration Release --no-restore
+          --warnaserror -p:EnableNETAnalyzers=true -p:AnalysisLevel=latest
+
+      # Architecture tests inspect exact assembly types. Coverage instrumentation
+      # adds tracker types, so this suite must run without instrumentation.
+      - name: Run architecture tests
+        run: >-
+          dotnet test tests/AulaPedidos.ArchitectureTests/AulaPedidos.ArchitectureTests.csproj
+          --configuration Release --no-build --no-restore --logger trx
+          --results-directory "${{ github.workspace }}/TestResults/architecture"
+
+      - name: Run infrastructure tests with coverage
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          dotnet test tests/AulaPedidos.Infrastructure.Tests/AulaPedidos.Infrastructure.Tests.csproj
+          --configuration Release --no-build --no-restore --logger trx
+          --collect:"XPlat Code Coverage"
+          --results-directory "${{ github.workspace }}/TestResults/infrastructure"
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Run API integration tests with coverage
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          dotnet test tests/AulaPedidos.Api.IntegrationTests/AulaPedidos.Api.IntegrationTests.csproj
+          --configuration Release
+          --no-build --no-restore
+          --logger trx
+          --collect:"XPlat Code Coverage"
+          --results-directory "${{ github.workspace }}/TestResults/api"
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Require coverage reports
+        id: coverage_reports
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for suite in infrastructure api; do
+            # TRX creates additional copies under <run>/In/<machine>/.
+            # Use only the collector's original <guid>/coverage file.
+            reports=(TestResults/"$suite"/*/coverage.cobertura.xml)
+            if (( ${#reports[@]} != 1 )); then
+              echo "Expected one original coverage report for $suite, found ${#reports[@]}." >&2
+              exit 1
+            fi
+          done
+
+      - name: Restore coverage tool
+        id: coverage_tool
+        if: ${{ !cancelled() && steps.coverage_reports.outcome == 'success' }}
+        run: dotnet tool restore
+
+      - name: Merge raw coverage and measure maintained source
+        id: merge_coverage
+        if: ${{ !cancelled() && steps.coverage_tool.outcome == 'success' }}
+        # Keep unfiltered evidence. Only compiler-generated files under obj/
+        # are outside the maintained-source threshold; no source files are hidden.
+        run: |
+          dotnet tool run reportgenerator \
+            "-reports:TestResults/infrastructure/*/coverage.cobertura.xml;TestResults/api/*/coverage.cobertura.xml" \
+            "-targetdir:CoverageRaw" \
+            "-reporttypes:Cobertura;MarkdownSummaryGithub"
+          dotnet tool run reportgenerator \
+            "-reports:TestResults/infrastructure/*/coverage.cobertura.xml;TestResults/api/*/coverage.cobertura.xml" \
+            "-targetdir:CoverageReport" \
+            "-reporttypes:Cobertura;MarkdownSummaryGithub;HtmlInline_AzurePipelines" \
+            "-filefilters:-**/obj/**"
+
+      - name: Require at least 80 percent maintained-source line coverage
+        if: ${{ !cancelled() && steps.merge_coverage.outcome == 'success' }}
+        run: python3 .github/scripts/check_coverage.py CoverageReport/Cobertura.xml
+
+      - name: Publish coverage in the job summary
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          if [[ -f CoverageReport/SummaryGithub.md ]]; then
+            echo '## Maintained source: 80% line coverage required (generated obj/ files excluded)' >> "$GITHUB_STEP_SUMMARY"
+            cat CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Coverage report unavailable; inspect the failed or skipped steps.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -f CoverageRaw/SummaryGithub.md ]]; then
+            echo '## Unfiltered coverage, including generated code (informational)' >> "$GITHUB_STEP_SUMMARY"
+            cat CoverageRaw/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload test and coverage evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: coverage-reports
+          path: |
+            TestResults/**/*.trx
+            TestResults/**/coverage.cobertura.xml
+            CoverageReport/
+            CoverageRaw/
+          if-no-files-found: error
+          retention-days: 14

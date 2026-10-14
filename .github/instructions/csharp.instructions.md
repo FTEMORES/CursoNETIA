@@ -22,7 +22,7 @@ applyTo: "**/*.cs"
 - Application coordina casos de uso mediante contratos.
 - Infrastructure implementa persistencia y servicios externos.
 - Api usa Minimal APIs y delega el negocio a Application.
-- Conserva el mediador propio y Result donde ya se utilizan.
+- Conserva la biblioteca Mediator de martinothamar que usa el proyecto. No introduzcas un mediador propio, MediatR ni Result sin una necesidad y un alcance expresamente definidos.
 - Realiza cambios pequeños dentro del alcance autorizado.
 
 ## Datos y operaciones
